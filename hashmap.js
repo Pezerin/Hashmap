@@ -1,7 +1,7 @@
-import { createList } from "./linkedList.mjs";
+import { createList } from "./linkedList.js";
 
-function createHashmap() {
-  let buckets = new Array(16);
+export function createHashmap() {
+  let buckets = new Array(16).fill(null);
   let length = 0;
   const loadFactor = 0.75;
 
@@ -10,7 +10,7 @@ function createHashmap() {
 
     const primeNumber = 31;
     for (let i = 0; i < key.length; i++) {
-      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % 16;
+      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % buckets.length;
     }
 
     return hashCode;
@@ -40,26 +40,19 @@ function createHashmap() {
       length++;
     }
 
-    // If length exceeds buckets * load factor, double buckets
     if (length > buckets.length * loadFactor) {
-      let arr = new Array(buckets.length * 2);
+      let arr = new Array(buckets.length * 2).fill(null);
       let entriesList = entries();
 
       for (let i = 0; i < entriesList.length; i++) {
         let [key, value] = entriesList[i];
-        let code = hash(key) % arr.length;
-        if (code < 0 || code >= arr.length) {
-          throw new Error("Trying to access index out of bound");
-        }
+        let code = hash(key);
 
         if (!arr[code]) {
           arr[code] = createList();
-          arr[code].append(key, value);
-        } else {
-          arr[code].append(key, value);
         }
+        arr[code].append(key, value);
       }
-
       buckets = arr;
     }
   }
@@ -70,12 +63,11 @@ function createHashmap() {
       throw new Error("Trying to access index out of bound");
     }
 
-    let current = buckets[code].listHead;
-    while (current) {
-      if (current.key === key) {
-        return current.value;
+    if (buckets[code]) {
+      const index = buckets[code].find(key);
+      if (index !== null) {
+        return buckets[code].at(index).value;
       }
-      current = current.nextNode;
     }
 
     return null;
@@ -87,12 +79,14 @@ function createHashmap() {
       throw new Error("Trying to access index out of bound");
     }
 
-    let current = buckets[code].listHead;
-    while (current) {
-      if (current.key === key) {
-        return true;
+    if (buckets[code]) {
+      let current = buckets[code].listHead;
+      while (current) {
+        if (current.key === key) {
+          return true;
+        }
+        current = current.nextNode;
       }
-      current = current.nextNode;
     }
 
     return false;
@@ -104,21 +98,24 @@ function createHashmap() {
       throw new Error("Trying to access index out of bound");
     }
 
-    let current = buckets[code].listHead;
-    let index = 0;
-    while (current) {
-      if (current.key === key) {
-        buckets[code].removeAt(index);
-        return true;
+    if (buckets[code]) {
+      let current = buckets[code].listHead;
+      let index = 0;
+      while (current) {
+        if (current.key === key) {
+          buckets[code].removeAt(index);
+          length--;
+          return true;
+        }
+        current = current.nextNode;
+        index++;
       }
-      current = current.nextNode;
-      index++;
     }
 
     return false;
   }
 
-  function length() {
+  function getLength() {
     return length;
   }
 
@@ -130,7 +127,6 @@ function createHashmap() {
 
   function keys() {
     let keys = [];
-
     for (let i = 0; i < buckets.length; i++) {
       if (buckets[i]) {
         let current = buckets[i].listHead;
@@ -140,7 +136,6 @@ function createHashmap() {
         }
       }
     }
-
     return keys;
   }
 
@@ -176,5 +171,16 @@ function createHashmap() {
     return entries;
   }
 
-  return { hash, set, get, has, remove, length, clear, keys, values, entries };
+  return {
+    hash,
+    set,
+    get,
+    has,
+    remove,
+    getLength,
+    clear,
+    keys,
+    values,
+    entries,
+  };
 }

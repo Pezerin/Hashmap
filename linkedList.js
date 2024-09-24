@@ -1,7 +1,11 @@
 export function createList() {
-  let listHead;
-  let listTail;
+  let listHead = null;
+  let listTail = null;
   let listSize = 0;
+
+  function createNode(key = null, value = null, nextNode = null) {
+    return { key, value, nextNode };
+  }
 
   // Append a key-value pair to the end of the list
   const append = (key, value) => {
@@ -144,9 +148,15 @@ export function createList() {
   };
 
   return {
-    listHead,
-    listTail,
-    listSize,
+    get listHead() {
+      return listHead;
+    },
+    get listTail() {
+      return listTail;
+    },
+    get listSize() {
+      return listSize;
+    },
     append,
     prepend,
     size,
@@ -160,9 +170,4 @@ export function createList() {
     insertAt,
     removeAt,
   };
-}
-
-// Node constructor function with key and value
-function createNode(key = null, value = null, nextNode = null) {
-  return { key, value, nextNode };
 }
